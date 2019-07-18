@@ -163,7 +163,8 @@ modHeader.factory('dataSource', function($mdToast) {
   if (dataSource.profiles.length == 0) {
     dataSource.profiles.push(dataSource.createProfile());
   }
-  angular.forEach(dataSource.profiles, function(profile, index) {
+  for (let index in dataSource.profiles) {
+    const profile = dataSource.profiles[index];
     if (!profile.title) {
       profile.title = 'Profile ' + (index + 1);
     }
@@ -181,7 +182,7 @@ modHeader.factory('dataSource', function($mdToast) {
     if (!profile.appendMode) {
       profile.appendMode = '';
     }
-  });
+  }
   if (localStorage.selectedProfile) {
     dataSource.selectedProfile = dataSource.profiles[Number(localStorage.selectedProfile)];
   }
@@ -506,9 +507,9 @@ modHeader.factory('autocompleteService', function(
   autocompleteService.responseHeaderValues = [];
 
   function createFilterFor_(query) {
-    var lowercaseQuery = angular.lowercase(query);
+    const lowercaseQuery = query.toLowerCase();
     return function filterFn(item) {
-      return (angular.lowercase(item).indexOf(lowercaseQuery) == 0);
+      return (item.toLowerCase().indexOf(lowercaseQuery) == 0);
     };
   }
 
@@ -516,11 +517,11 @@ modHeader.factory('autocompleteService', function(
     if (!query || query.length < 2) {
       return [];
     }
-    angular.forEach(sourceHeaderList, function(header) {
+    for (let header of sourceHeaderList) {
       if (header[field] != query && cache.indexOf(header[field]) < 0) {
         cache.push(header[field]);
       }
-    });
+    }
     return cache.filter(createFilterFor_(query));
   };
   return autocompleteService;
