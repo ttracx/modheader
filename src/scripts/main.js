@@ -29,6 +29,35 @@ function fixProfile(profile) {
   }
 }
 
+function generateTipOfDay() {
+  const tips = [
+    {text: 'Tip: You can switch between multiple profile'},
+    {text: 'Tip: You can export your profile to share with others'},
+    {text: 'Tip: Tab lock will apply the modification only to locked tab'},
+    {text: 'Tip: Add filter will let you use regex to limit modification'},
+    {text: 'Tip: Use the checkbox to quickly toggle header modification'},
+    {text: 'Tip: Click on the column name to sort'},
+    {text: 'Tip: Add filter also allows you to filter by resource type'},
+    {text: 'Tip: Go to profile setting to toggle comment column'},
+    {text: 'Tip: Append header value to existing one in profile setting'},
+    {text: 'Tip: Pause button will temporarily pause all modifications'},
+    {text: 'Tip: Go to cloud backup to retrieve your auto-synced profile'},
+    {
+      text: 'If you like ModHeader, please consider donating',
+      buttonText: 'Donate',
+      url: 'https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=3XFKZ8PCRB8P6&currency_code=USD&amount=5&source=url'
+    },
+    {
+      text: 'Enjoying ModHeader, leave us a review',
+      buttonText: 'Review',
+      url: navigator.userAgent.indexOf('Firefox') >= 0
+          ? 'https://addons.mozilla.org/firefox/addon/modheader-firefox/'
+          : 'https://chrome.google.com/webstore/detail/modheader/idgpnmonknjnojddfkpgkljpfnnfcklj'
+    },
+  ];
+  return tips[Math.floor(Math.random() * tips.length)];
+}
+
 modHeader.factory('dataSource', function($mdToast) {
   var dataSource = {};
 
@@ -559,47 +588,34 @@ modHeader.controller('AppController', function(
   $scope.dataSource = dataSource;
   $scope.profileService = profileService;
 
-  const tips = [
-    {text: 'Tip: You can switch between multiple profile'},
-    {text: 'Tip: You can export your profile to share with others'},
-    {text: 'Tip: Tab lock will apply the modification only to locked tab'},
-    {text: 'Tip: Add filter will let you use regex to limit modification'},
-    {text: 'Tip: Use the checkbox to quickly toggle header modification'},
-    {text: 'Tip: Click on the column name to sort'},
-    {text: 'Tip: Add filter also allows you to filter by resource type'},
-    {text: 'Tip: Go to profile setting to toggle comment column'},
-    {text: 'Tip: Append header value to existing one in profile setting'},
-    {text: 'Tip: Pause button will temporarily pause all modifications'},
-    {text: 'Tip: Go to cloud backup to retrieve your auto-synced profile'},
-    {
-      text: 'If you like ModHeader, please consider donating',
-      buttonText: 'Donate',
-      url: 'https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=3XFKZ8PCRB8P6&currency_code=USD&amount=5&source=url'
-    },
-    {
-      text: 'Enjoying ModHeader, leave us a review',
-      buttonText: 'Review',
-      url: navigator.userAgent.indexOf('Firefox') >= 0
-          ? 'https://addons.mozilla.org/firefox/addon/modheader-firefox/'
-          : 'https://chrome.google.com/webstore/detail/modheader/idgpnmonknjnojddfkpgkljpfnnfcklj'
-    },
-  ];
-  const tip = tips[Math.floor(Math.random() * tips.length)];
-  $mdToast.show({
-    position: 'bottom',
-    controller: 'ToastCtrl',
-    controllerAs: 'ctrl',
-    bindToController: true,
-    locals: {toastMessage: tip.text, buttonText: tip.buttonText, url: tip.url},
-    templateUrl: 'footer.tmpl.html'
-  });
+  // If user dismiss tooltip too many times, then don't show again.
+  if (!localStorage.numTipDismiss || localStorage.numTipDismiss < 3) {
+    const tip = generateTipOfDay();
+    $mdToast.show({
+      position: 'bottom',
+      controller: 'ToastCtrl',
+      controllerAs: 'ctrl',
+      bindToController: true,
+      locals: {toastMessage: tip.text, buttonText: tip.buttonText, url: tip.url},
+      templateUrl: 'footer.tmpl.html'
+    });
+  }
 });
 
 
-modHeader.controller('ToastCtrl', function($mdToast, $mdDialog, $document, $scope) {
+modHeader.controller('ToastCtrl', function($mdToast, $scope) {
   let ctrl = this;
 
   ctrl.goToUrl = function(url) {
     browser.tabs.create({url: url});
+  };
+
+  ctrl.dismiss = function() {
+    if (localStorage.numTipDismiss) {
+      localStorage.numTipDismiss++;
+    } else {
+      localStorage.numTipDismiss = 1;
+    }
+    $mdToast.hide();
   };
 });
